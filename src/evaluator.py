@@ -70,23 +70,24 @@ def evaluate_tree(node: dict):
         return -node["value"]
 
     if node["type"] == "operation":
-        if node["op"] == "+":
-            return evaluate_tree(node["left"]) + evaluate_tree(node["right"])
+        left, right = evaluate_tree(node["left"]), evaluate_tree(node["right"])
 
-        if node["op"] == "-":
-            return evaluate_tree(node["left"]) - evaluate_tree(node["right"])
+        if node["op"] == "+": return left + right
+        if node["op"] == "-": return left - right
+        if node["op"] == "*": return left * right
+        if node["op"] == "/": return left / right
+        if node["op"] == "%": return left % right
+        if node["op"] == "^": return left ** right
 
-        if node["op"] == "*":
-            return evaluate_tree(node["left"]) * evaluate_tree(node["right"])
+def display_tree(node: dict):
+    if node["type"] == "number":
+        return str(node["value"])
 
-        if node["op"] == "/":
-            return evaluate_tree(node["left"]) / evaluate_tree(node["right"])
+    if node["type"] == "unary":
+        return f"(neg {node["value"]})"
 
-        if node["op"] == "%":
-            return evaluate_tree(node["left"]) % evaluate_tree(node["right"])
-
-        if node["op"] == "^":
-            return evaluate_tree(node["left"]) ** evaluate_tree(node["right"])
+    if node["type"] == "operation":
+        return f"({node["op"]} {display_tree(node["left"])} {display_tree(node["right"])})"
 
 #region Ideas and testing
 
@@ -201,6 +202,7 @@ tree = {
     }
 }
 
+print("Tree:", display_tree(tree))
 print("Result:", evaluate_tree(tree))
 
 #endregion
