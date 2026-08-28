@@ -20,7 +20,7 @@ operators = "+-*/%^"
 def tokenise(e: str) -> list[list]:
     tokens = []
 
-    # split into tokens [TYPE : VALUE] end with [END]
+    # split into tokens (TYPE, VALUE) end with (END)
 
     l = len(e)
     i = 0
@@ -34,31 +34,31 @@ def tokenise(e: str) -> list[list]:
             while i + 1 < l and e[i + 1].isdigit():
                 i += 1
 
-            if i < l and e[i] == '.':
+            if i < l and e[i + 1] == '.':
                 i += 1
 
                 while i + 1 < l and e[i + 1].isdigit():
                     i += 1
 
-            tokens.append(["NUM", e[start : i + 1]])
+            tokens.append(("NUM", e[start : i + 1]))
 
         elif char in operators:
-            tokens.append(["OP", char])
+            tokens.append(("OP", char))
 
         elif char == '(':
-            tokens.append(["LPAREN", char])
+            tokens.append(("LPAREN", char))
 
         elif char == ')':
-            tokens.append(["RPAREN", char])
+            tokens.append(("RPAREN", char))
 
         else:
             if not char.isspace():
                 print(f"Invalid character: '{char}'")
-                return ["ERROR"]
+                return [("ERROR", None)]
 
         i += 1
 
-    tokens.append(["END"])
+    tokens.append(("END", None))
 
     return tokens
 
@@ -78,6 +78,23 @@ def evaluate_tree(node: dict):
         if node["op"] == "/": return left / right
         if node["op"] == "%": return left % right
         if node["op"] == "^": return left ** right
+
+def display_tokens(tokens: list):
+    tokens_str = ""
+
+    for token in tokens:
+        t_type = token[0]
+        value = token[1]
+
+        tokens_str += "[" + t_type
+
+        if value != None:
+            tokens_str += " : " + value
+
+        tokens_str += "] "
+
+    return tokens_str
+
 
 def display_tree(node: dict):
     if node["type"] == "number":
@@ -214,7 +231,7 @@ def evaluate_file(input_path: str) -> list[dict]:
 
     for e in expressions:
         tokens = tokenise(e)
-        print(*tokens)
+        print(display_tokens(tokens))
 
 while True:
     input_path = input("Input path: ")
