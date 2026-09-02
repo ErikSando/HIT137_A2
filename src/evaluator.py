@@ -31,31 +31,33 @@ def tokenise(e: str) -> list[tuple]:
 
     # split into tokens (TYPE, VALUE) end with (END, None)
 
-    l = len(e)
     i = 0
 
-    while i < l:
+    while i < len(e):
         char = e[i]
 
         if char.isdigit():
+            # read until a non-digit character, then check for a decimal place
+            # if there is a decimal place, read all digits after the decimal place
+
             start = i
 
-            # FIX: was "i + 1 < l" missing on the lookahead below, which let
+            # FIX: was "i + 1 < len(e)" missing on the lookahead below, which let
             # e[i + 1] run past the end of the string for a number at the
             # very end of the line (e.g. "3+5" with no trailing character).
-            while i + 1 < l and e[i + 1].isdigit():
+            while i + 1 < len(e) and e[i + 1].isdigit():
                 i += 1
 
-            # FIX: must check i + 1 < l before reading e[i + 1], not i < l.
-            if i + 1 < l and e[i + 1] == '.':
+            # FIX: must check i + 1 < len(e) before reading e[i + 1], not i < len(e).
+            if i + 1 < len(e) and e[i + 1] == '.':
                 i += 1  # consume the '.'
 
                 # a '.' with no digit after it (e.g. "3.") is not a valid number literal -> treat the whole line as a tokenising error
-                if i + 1 >= l or not e[i + 1].isdigit():
-                    print(f"Invalid number literal: '{e[start:i + 1]}'")
+                if i + 1 >= len(e) or not e[i + 1].isdigit():
+                    print(f"Error in tokenise: Invalid number literal '{e[start:i + 1]}'")
                     return [("ERROR", None)]
 
-                while i + 1 < l and e[i + 1].isdigit():
+                while i + 1 < len(e) and e[i + 1].isdigit():
                     i += 1
 
             tokens.append(("NUM", e[start: i + 1]))
@@ -70,8 +72,8 @@ def tokenise(e: str) -> list[tuple]:
             tokens.append(("RPAREN", char))
 
         else:
-            if not char.isspace():
-                print(f"Invalid character: '{char}'")
+            if not char.isspace(): # other characters are not supported
+                print(f"Error in tokenise: Invalid character '{char}'")
                 return [("ERROR", None)]
 
         i += 1
@@ -81,21 +83,21 @@ def tokenise(e: str) -> list[tuple]:
     return tokens
 
 
-# ---------------------------------------------------------------------------
-# Parser - builds the tree from the tokens (recursive descent)
-#
-# Each parse_* function takes (tokens, pos) and returns (node, new_pos).
-# Every level calls the *next tighter* level to get its operands, and
-# parentheses recurse all the way back to the loosest level (parse_add_sub).
-#
-# Node shapes (matching Erik's evaluate_tree / display_tree):
-#   {"type": "number", "value": <float>}
-#   {"type": "unary", "operand": <node>}
-#   {"type": "operation", "op": <str>, "left": <node>, "right": <node>}
-# ---------------------------------------------------------------------------
+"""
+Parser - builds the tree from the tokens (recursive descent)
+
+Each parse_* function takes (tokens, pos) and returns (node, new_pos).
+Every level calls the *next tighter* level to get its operands, and
+parentheses recurse all the way back to the loosest level (parse_add_sub).
+
+Node shapes (matching Erik's evaluate_tree / display_tree):
+  {"type": "number", "value": <float>}
+  {"type": "unary", "operand": <node>}
+  {"type": "operation", "op": <str>, "left": <node>, "right": <node>}
+"""
 
 def parse_add_sub(tokens, pos):
-    """Level 1 (loosest): + -"""
+    # Level 1 (loosest): + -
 
     left, pos = parse_mul_div(tokens, pos)
 
@@ -109,7 +111,7 @@ def parse_add_sub(tokens, pos):
 
 
 def parse_mul_div(tokens, pos):
-    """Level 2: * / % and implicit multiplication"""
+    # Level 2: * / % and implicit multiplication
 
     left, pos = parse_unary(tokens, pos)
 
@@ -133,7 +135,7 @@ def parse_mul_div(tokens, pos):
 
 
 def parse_unary(tokens, pos):
-    """Level 3: prefix unary minus (unary + is an error)"""
+    # Level 3: prefix unary minus (unary + is an error)
 
     t_type, t_val = tokens[pos]
 
@@ -143,13 +145,13 @@ def parse_unary(tokens, pos):
         return {"type": "unary", "operand": operand}, pos
 
     if t_type == "OP" and t_val == "+":
-        raise RuntimeError("unary + is not supported")
+        raise RuntimeError("Unary + is not supported")
 
     return parse_power(tokens, pos)
 
 
 def parse_power(tokens, pos):
-    """Level 4 (tightest): ^, right associative"""
+    # Level 4 (tightest): ^, right associative
 
     base, pos = parse_primary(tokens, pos)
 
@@ -164,7 +166,7 @@ def parse_power(tokens, pos):
 
 
 def parse_primary(tokens, pos):
-    """A number literal, or a parenthesised sub-expression."""
+    # A number literal, or a parenthesised sub-expression.
 
     t_type, t_val = tokens[pos]
 
@@ -186,7 +188,7 @@ def parse_primary(tokens, pos):
 
 
 def build_tree(tokens):
-    """Parse the full token list into one tree, or raise ParseError."""
+    # Parse the full token list into one tree, or raise a RuntimeError.
 
     node, pos = parse_add_sub(tokens, 0)
 
@@ -201,7 +203,7 @@ def build_tree(tokens):
 # ---------------------------------------------------------------------------
 
 def evaluate_tree(node: dict):
-    if node["type"] == "number":
+    if node["type"] == "number": 
         return node["value"]
 
     # FIX: unary negation must negate a sub-tree ("operand"), not a bare
@@ -210,8 +212,10 @@ def evaluate_tree(node: dict):
         return -evaluate_tree(node["operand"])
 
     if node["type"] == "operation":
+        # recursively evaluate the tree, from the first operation to the last
         left, right = evaluate_tree(node["left"]), evaluate_tree(node["right"])
 
+        # perform the operation on the left and right values
         if node["op"] == "+": return left + right
         if node["op"] == "-": return left - right
         if node["op"] == "*": return left * right
@@ -226,14 +230,10 @@ def evaluate_tree(node: dict):
 
 def format_number(value) -> str:
     """
-    Whole numbers show with no decimal point (8.0 -> "8").
-    Otherwise round to 4 decimal places, trimming trailing zeros
+    Round to 4 decimal places, trimming trailing zeros
     (2.66666... -> "2.6667", 2.5 -> "2.5").
     """
-    rounded = round(value, 4)
-    if rounded == int(rounded):
-        return str(int(rounded))
-    return f"{rounded:.4f}".rstrip("0").rstrip(".")
+    return f"{value:.4f}".rstrip("0").rstrip(".")
 
 
 def display_tokens(tokens: list) -> str:
@@ -260,7 +260,7 @@ def display_tree(node: dict) -> str:
     if node["type"] == "unary":
         return f"(neg {display_tree(node['operand'])})"  # FIX: recurse, don't print a bare value
 
-    if node["type"] == "operation":
+    if node["type"] == "operation": # use the same recursion technique as evaluate_tree for displaying the tree
         return f"({node['op']} {display_tree(node['left'])} {display_tree(node['right'])})"
 
 
@@ -279,7 +279,8 @@ def process_expression(expr_text: str) -> dict:
     try:
         tree = build_tree(tokens)
 
-    except RuntimeError:
+    except RuntimeError as e:
+        print("Error in build_tree:", e) # print the error
         return {"input": expr_text, "tree": "ERROR", "tokens": tokens_str, "result": "ERROR"}
 
     tree_str = display_tree(tree)
