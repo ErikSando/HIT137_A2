@@ -1,6 +1,8 @@
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+
 while True:
     try:
         shift1 = int(input("Enter shift1 (non negative number): "))
