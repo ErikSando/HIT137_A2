@@ -64,6 +64,50 @@ def encrypt_file(shift1: int, shift2: int, input_path: str, output_path: str) ->
 
 encrypt_file(shift1, shift2, raw_text_path, encrypted_text_path)
 print("Encryption Completed")
+#Decryption Function
+
+def decrypt_file(shift1: int, shift2: int, input_path: str, output_path: str) -> None:
+    decrypted_text = ""
+    with open(input_path, "r") as encrypted_file:
+        encrypted_text = encrypted_file.read()
+
+    for ch in encrypted_text:
+        # Lowercase Letters Decryption
+        if 'a' <= ch <= 'n':
+            shift = shift1 * shift2
+            shifted_ch = chr((ord(ch) - ord('a') - shift) % 14 + ord('a'))
+            decrypted_text += shifted_ch
+
+        elif 'o' <= ch <= 'z':
+            shift = shift1 + shift2
+            shifted_ch = chr((ord(ch) - ord('o') + shift) % 12 + ord('o'))
+            decrypted_text += shifted_ch
+
+        # Uppercase Letters Decryption
+        elif 'A' <= ch <= 'M':
+            shift = shift1 
+            shifted_ch = chr((ord(ch) - ord('A') + shift) % 13 + ord('A'))
+            decrypted_text += shifted_ch
+
+        elif 'N' <= ch <= 'Z':
+            shift = shift2 ** 2
+            shifted_ch = chr((ord(ch) - ord('N') - shift) % 13 + ord('N'))
+            decrypted_text += shifted_ch
+
+        # Numbers Decryption
+        elif '0' <= ch <= '9':
+            shift = shift1 - shift2
+            shifted_num = chr((ord(ch) - ord('0') - shift) % 10 + ord('0'))
+            decrypted_text += shifted_num
+
+        else:
+            decrypted_text += ch
+
+    with open(output_path, "w") as decrypt_text_file:
+        decrypt_text_file.write(decrypted_text)
+
+
+decrypt_file(shift1, shift2, encrypted_text_path, decrypted_text_path)
 
 # Compares "raw_text.txt" with "decrypted_text.txt" and prints whether the
 #decryption was successful or not.
