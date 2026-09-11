@@ -1,8 +1,6 @@
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-
 while True:
     try:
         shift1 = int(input("Enter shift1 (non negative number): "))
@@ -61,11 +59,7 @@ def encrypt_file(shift1: int, shift2: int, input_path: str, output_path: str) ->
     with open(output_path, "w") as encrypt_text_file:
         encrypt_text_file.write(encrypted_text)
 
-
-encrypt_file(shift1, shift2, raw_text_path, encrypted_text_path)
-print("Encryption Completed")
 #Decryption Function
-
 def decrypt_file(shift1: int, shift2: int, input_path: str, output_path: str) -> None:
     decrypted_text = ""
     with open(input_path, "r") as encrypted_file:
@@ -106,11 +100,7 @@ def decrypt_file(shift1: int, shift2: int, input_path: str, output_path: str) ->
     with open(output_path, "w") as decrypt_text_file:
         decrypt_text_file.write(decrypted_text)
 
-
-decrypt_file(shift1, shift2, encrypted_text_path, decrypted_text_path)
-
-# Compares "raw_text.txt" with "decrypted_text.txt" and prints whether the
-#decryption was successful or not.
+# Compares "raw_text.txt" with "decrypted_text.txt" and prints whether the decryption was successful or not.
 def verify_files(original_path: str, decrypted_path: str) -> bool:
     with open(original_path, "r") as raw_text_file:
         raw_text = raw_text_file.read()
@@ -123,5 +113,7 @@ def verify_files(original_path: str, decrypted_path: str) -> bool:
     else:
         print("Decryption not Successful")
 
-
+encrypt_file(shift1, shift2, raw_text_path, encrypted_text_path)
+print("Encryption Completed")
+decrypt_file(shift1, shift2, encrypted_text_path, decrypted_text_path)
 verify_files(raw_text_path, decrypted_text_path)
